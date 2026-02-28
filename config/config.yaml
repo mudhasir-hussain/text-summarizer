@@ -1,0 +1,6 @@
+artifacts_root: artifacts
+data_ingestion:
+  root_dir: artifacts/data_ingestion
+  source_URL: https://raw.githubusercontent.com/mhussainm/text-summarizer/master/data/source/News_Category_Dataset_v2.json
+  local_data_file: news.json
+  unzip_dir: news 
