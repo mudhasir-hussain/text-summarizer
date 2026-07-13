@@ -25,10 +25,11 @@ class PredictionPipeline:
         if device == "cpu" and torch.backends.mps.is_available():
             device = "mps"
             
-        model_path = "transformersbook/pegasus-samsum"
-        tokenizer_path = "transformersbook/pegasus-samsum"
+        # Default model and tokenizer ID/path
+        model_path = os.environ.get("PEGASUS_MODEL_ID", "transformersbook/pegasus-samsum")
+        tokenizer_path = os.environ.get("PEGASUS_MODEL_ID", "transformersbook/pegasus-samsum")
 
-        if self.use_config:
+        if self.use_config and not os.environ.get("PEGASUS_MODEL_ID"):
             config_model_path = str(self.config.model_path)
             config_tokenizer_path = str(self.config.tokenizer_path)
             if os.path.exists(config_model_path) and os.path.exists(config_tokenizer_path):
