@@ -27,7 +27,7 @@ class PredictionPipeline:
             
         # Default model and tokenizer ID/path
         model_path = os.environ.get("PEGASUS_MODEL_ID", "transformersbook/pegasus-samsum")
-        tokenizer_path = os.environ.get("PEGASUS_MODEL_ID", "transformersbook/pegasus-samsum")
+        tokenizer_path = "transformersbook/pegasus-samsum" # Always load standard tokenizer
 
         if self.use_config and not os.environ.get("PEGASUS_MODEL_ID"):
             config_model_path = str(self.config.model_path)
