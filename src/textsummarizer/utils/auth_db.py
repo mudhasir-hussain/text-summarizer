@@ -17,7 +17,7 @@ if not CONN_STR:
     CONN_STR = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 
 def get_db_connection():
-    conn = psycopg2.connect(CONN_STR, cursor_factory=RealDictCursor)
+    conn = psycopg2.connect(CONN_STR, cursor_factory=RealDictCursor, connect_timeout=5)
     return conn
 
 def init_db():
