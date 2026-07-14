@@ -24,6 +24,8 @@ def transcribe_audio(audio_path: str) -> str:
         if response.status_code == 200:
             result = response.json()
             text = result.get("text", "").strip()
+        else:
+            raise Exception(f"HF API Error {response.status_code}: {response.text}")
         
         # 1. Cleaned text check
         if not text:
