@@ -15,10 +15,11 @@ def transcribe_audio(audio_path: str) -> str:
         with open(audio_path, "rb") as f:
             data = f.read()
             
+        import json
         client = InferenceClient(api_key=hf_token)
-        # Query Hugging Face's automatic speech recognition task
-        result = client.automatic_speech_recognition(data, model="openai/whisper-base.en")
-        
+        # Use raw client.post to bypass huggingface_hub's third-party provider resolution logic
+        response = client.post(data=data, model="openai/whisper-base.en")
+        result = json.loads(response)
         text = result.get("text", "").strip()
         
         # 1. Cleaned text check
