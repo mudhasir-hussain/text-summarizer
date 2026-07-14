@@ -9,7 +9,7 @@ def transcribe_audio(audio_path: str) -> str:
     from langdetect import detect
     import requests
     hf_token = os.environ.get("HF_TOKEN")
-    api_url = "https://router.huggingface.co/hf-inference/models/openai/whisper-base.en"
+    api_url = "https://router.huggingface.co/hf-inference/models/openai/whisper-large-v3-turbo"
     headers = {}
     if hf_token:
         headers["Authorization"] = f"Bearer {hf_token}"
