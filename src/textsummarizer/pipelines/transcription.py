@@ -10,7 +10,25 @@ def transcribe_audio(audio_path: str) -> str:
     import requests
     hf_token = os.environ.get("HF_TOKEN")
     api_url = "https://router.huggingface.co/hf-inference/models/openai/whisper-large-v3-turbo"
-    headers = {}
+    
+    # Determine Content-Type based on audio file extension
+    ext = os.path.splitext(audio_path)[1].lower()
+    if ext == ".mp3":
+        content_type = "audio/mpeg"
+    elif ext in (".wav", ".wave"):
+        content_type = "audio/wav"
+    elif ext == ".m4a":
+        content_type = "audio/x-m4a"
+    elif ext == ".flac":
+        content_type = "audio/flac"
+    elif ext == ".webm":
+        content_type = "audio/webm"
+    elif ext == ".ogg":
+        content_type = "audio/ogg"
+    else:
+        content_type = "audio/x-audio"
+        
+    headers = {"Content-Type": content_type}
     if hf_token:
         headers["Authorization"] = f"Bearer {hf_token}"
         
