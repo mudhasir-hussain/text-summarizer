@@ -1083,7 +1083,7 @@
 
                 <div class="glass-panel">
                     <div class="panel-header">Summary Output</div>
-                    <div class="summary-box" id="summaryOutput" style="min-height: 200px;">Pegasus summaries will appear here...</div>
+                    <div class="summary-box" id="summaryOutput" style="min-height: 200px;">Summaries will appear here...</div>
                     <button type="button" class="btn btn-secondary" style="padding: 0.6rem; width: 100%; margin-top: 0.5rem;" id="loadSampleBtn" onclick="loadSampleText()">
                         Load Sample Dialogue
                     </button>
@@ -1093,7 +1093,7 @@
     </main>
 
     <footer>
-        <p>© 2026 SumMeet. Built on OpenAI Whisper & Google Pegasus.</p>
+        <p>© 2026 SumMeet. Powered by Whisper & Custom-Trained Summarizer.</p>
     </footer>
 
     <div class="toast" id="toast">
@@ -1346,7 +1346,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             const outputBox = document.getElementById("summaryOutput");
             const button = document.getElementById("summarizeBtn");
             
-            outputBox.innerHTML = `Summarizing dialogue using Pegasus...`;
+            outputBox.innerHTML = `Summarizing dialogue using Custom-Trained Model...`;
             button.disabled = true;
 
             try {
@@ -1445,7 +1445,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                     showToast("Text history cleared.");
                     loadTextHistory();
                     document.getElementById("dialogueInput").value = "";
-                    document.getElementById("summaryOutput").innerText = "Pegasus summaries will appear here...";
+                    document.getElementById("summaryOutput").innerText = "Summaries will appear here...";
                     updateCharCount();
                 } else {
                     showToast("Failed to clear history.");
@@ -1938,7 +1938,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             const outputBox = document.getElementById("voiceSummaryBox");
             const button = document.getElementById("voiceSummarizeBtn");
             
-            outputBox.innerText = `Summarizing dialogue using Pegasus...`;
+            outputBox.innerText = `Summarizing dialogue using Custom-Trained Model...`;
             button.disabled = true;
             
             try {
@@ -1952,13 +1952,13 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                 if (response.ok) {
                     outputBox.innerText = data.summary;
                     currentSession.summary = data.summary;
-                    showToast("Pegasus summary complete!");
+                    showToast("Summary complete!");
                     await saveCurrentSessionToServer();
                 } else {
                     outputBox.innerText = "Error: " + (data.error || "Failed to generate summary.");
                 }
             } catch(e) {
-                outputBox.innerText = "Error connecting to Pegasus engine.";
+                outputBox.innerText = "Error connecting to Custom-Trained Model engine.";
             } finally {
                 button.disabled = false;
             }
