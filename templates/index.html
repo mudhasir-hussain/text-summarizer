@@ -948,7 +948,7 @@
             
             {% if google_client_id %}
             <!-- Google Sign-In Button Container -->
-            <div id="googleBtnContainer" style="display: flex; justify-content: center; width: 100%;">
+            <div id="googleBtnContainer" style="display: flex; justify-content: center; align-items: center; width: 100%; margin: 0 auto;">
                 <div id="g_id_onload"
                      data-client_id="{{ google_client_id }}"
                      data-context="signin"
@@ -956,7 +956,7 @@
                      data-callback="handleGoogleCredentialResponse"
                      data-auto_select="false">
                 </div>
-                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_black" data-text="signin_with" data-size="large" data-logo_alignment="left" style="width: 100%;"></div>
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_black" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
             </div>
             {% else %}
             <div style="color: var(--text-muted); font-size: 0.8rem; border: 1px dashed var(--border); padding: 1rem; border-radius: var(--radius-md); width: 100%;">
