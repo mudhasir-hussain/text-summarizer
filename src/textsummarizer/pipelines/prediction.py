@@ -11,7 +11,7 @@ class PredictionPipeline:
         hf_token = os.environ.get("HF_TOKEN")
         
         logger.info(f"Predicting summary via HF Inference API for model: {model_id}...")
-        api_url = f"https://api-inference.huggingface.co/models/{model_id}"
+        api_url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
         headers = {}
         if hf_token:
             headers["Authorization"] = f"Bearer {hf_token}"
