@@ -61,29 +61,4 @@ To run the application locally or in a cloud environment (e.g., Render), create 
 | `HF_TOKEN` | Hugging Face User Access Token (Read access) |
 | `GOOGLE_CLIENT_ID` | Google OAuth Web client credential client ID |
 
----
 
-## Local Development Setup
-
-To run this project on your local machine for development:
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/mudhasir-hussain/text-summarizer.git
-   cd text-summarizer
-   ```
-
-2. **Install dependencies**:
-   It is recommended to use a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   pip install -e .
-   ```
-
-3. **Start the server**:
-   ```bash
-   python app.py
-   ```
-   Open your browser and navigate to `http://127.0.0.1:8080`.
