@@ -7,7 +7,7 @@ class PredictionPipeline:
         self.use_config = False
 
     def predict(self, text):
-        model_id = os.environ.get("PEGASUS_MODEL_ID", "philschmid/bart-large-cnn-samsum")
+        model_id = os.environ.get("PEGASUS_MODEL_ID", "mudhasir/summeet")
         hf_token = os.environ.get("HF_TOKEN")
         
         logger.info(f"Predicting summary via HF InferenceClient for model: {model_id}...")
