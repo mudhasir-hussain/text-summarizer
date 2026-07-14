@@ -7,20 +7,23 @@ def transcribe_audio(audio_path: str) -> str:
     Transcribes the given audio file using OpenAI's Whisper model via Hugging Face InferenceClient.
     """
     from langdetect import detect
-    
+    import requests
     hf_token = os.environ.get("HF_TOKEN")
-    logger.info(f"Transcribing audio file via HF InferenceClient: {audio_path}...")
+    api_url = "https://router.huggingface.co/hf-inference/models/openai/whisper-base.en"
+    headers = {}
+    if hf_token:
+        headers["Authorization"] = f"Bearer {hf_token}"
+        
+    logger.info(f"Transcribing audio file via raw requests to HF Router: {audio_path}...")
     
     try:
         with open(audio_path, "rb") as f:
             data = f.read()
             
-        import json
-        client = InferenceClient(api_key=hf_token)
-        # Use raw client.post to bypass huggingface_hub's third-party provider resolution logic
-        response = client.post(data=data, model="openai/whisper-base.en")
-        result = json.loads(response)
-        text = result.get("text", "").strip()
+        response = requests.post(api_url, headers=headers, data=data)
+        if response.status_code == 200:
+            result = response.json()
+            text = result.get("text", "").strip()
         
         # 1. Cleaned text check
         if not text:
