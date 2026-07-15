@@ -7,17 +7,26 @@ import json
 from datetime import datetime, timedelta
 from textsummarizer.logging import logger
 
-CONN_STR = os.environ.get("DATABASE_URL")
-if not CONN_STR:
+def get_db_connection():
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        return psycopg2.connect(db_url, cursor_factory=RealDictCursor, connect_timeout=5)
+    
     db_user = os.environ.get("DB_USER", "postgres.wbxaqhoqdewajnctumrb")
     db_pass = os.environ.get("DB_PASSWORD", "S1u2p3a4b5!@")
     db_host = os.environ.get("DB_HOST", "aws-0-ap-southeast-1.pooler.supabase.com")
     db_port = os.environ.get("DB_PORT", "6543")
     db_name = os.environ.get("DB_NAME", "postgres")
-    CONN_STR = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
-
-def get_db_connection():
-    conn = psycopg2.connect(CONN_STR, cursor_factory=RealDictCursor, connect_timeout=5)
+    
+    conn = psycopg2.connect(
+        host=db_host,
+        database=db_name,
+        user=db_user,
+        password=db_pass,
+        port=db_port,
+        cursor_factory=RealDictCursor,
+        connect_timeout=5
+    )
     return conn
 
 def init_db():

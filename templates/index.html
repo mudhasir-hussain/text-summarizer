@@ -172,6 +172,7 @@
             flex-direction: column;
             gap: 1.5rem;
             height: calc(100vh - 140px);
+            min-height: 680px; /* Prevent layout squish on desktop */
             overflow: hidden;
         }
 
@@ -844,20 +845,54 @@
             right: 1.5rem;
             background: #121318;
             border: 1px solid var(--border);
-            border-left: 3px solid var(--primary);
+            border-left: 4px solid var(--primary);
             padding: 0.8rem 1.2rem;
             border-radius: var(--radius-sm);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
-            font-size: 0.82rem;
-            z-index: 2300;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            z-index: 3500;
             transform: translateY(150%);
-            transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+            color: white;
+            font-weight: 500;
         }
 
         .toast.show {
             transform: translateY(0);
+        }
+
+        .toast.toast-success {
+            border-left-color: var(--success);
+        }
+
+        .toast.toast-error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.toast-loading {
+            border-left-color: var(--primary);
+        }
+
+        .toast-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .toast-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border-left-color: white;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
         }
 
         .spinner {
@@ -989,6 +1024,46 @@
             }
             .speaker-input {
                 width: 100% !important;
+            }
+            .live-words-box {
+                height: auto;
+                min-height: 90px;
+                max-height: 120px;
+            }
+            footer {
+                text-align: center;
+                padding: 1rem;
+            }
+        }
+
+        /* High-density or short viewports on desktop */
+        @media (max-height: 850px) and (min-width: 1025px) {
+            header {
+                padding: 0.8rem 1.5rem;
+            }
+            main {
+                padding: 1rem 1.5rem;
+                gap: 1rem;
+                height: calc(100vh - 110px);
+                min-height: 600px;
+            }
+            .glass-panel {
+                padding: 1rem;
+                gap: 0.8rem;
+            }
+            .control-card {
+                padding: 0.6rem 0.8rem;
+                gap: 0.6rem;
+            }
+            .live-words-box {
+                height: 50px;
+                padding: 0.4rem 0.6rem;
+            }
+            .chat-container {
+                gap: 0.6rem;
+            }
+            .chat-bubble-wrapper {
+                padding: 0.5rem 0.7rem;
             }
         }
     </style>
@@ -1184,6 +1259,7 @@
     </footer>
 
     <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon"></span>
         <span id="toastMsg">Status Notification</span>
     </div>
 
@@ -1227,6 +1303,14 @@
 
         // --- AUTH FRONTEND HANDLERS ---
         async function checkLoginStatus() {
+            // Local development bypass check (file:// or ?bypass=true query)
+            if (window.location.protocol === "file:" || window.location.search.includes("bypass")) {
+                document.getElementById("authOverlay").classList.add("hide");
+                document.getElementById("userBadge").style.display = "flex";
+                document.getElementById("headerUsername").innerText = "Developer";
+                document.getElementById("userAvatar").innerText = "D";
+                return;
+            }
             try {
                 const response = await fetch("/auth/me");
                 const data = await response.json();
@@ -1298,13 +1382,50 @@
             event.target.classList.add('active');
         }
 
-        function showToast(msg, duration = 2500) {
+        let toastTimeout;
+        function showToast(msg, type = 'info', duration = 2500) {
             const toast = document.getElementById("toast");
-            document.getElementById("toastMsg").innerText = msg;
+            const toastMsg = document.getElementById("toastMsg");
+            const toastIcon = document.getElementById("toastIcon");
+
+            if (!toast || !toastMsg || !toastIcon) return;
+
+            // Reset classes
+            toast.className = "toast";
+            toastIcon.innerHTML = "";
+
+            if (type === 'success') {
+                toast.classList.add("toast-success");
+                toastIcon.innerHTML = `<span style="color: var(--success); font-weight: bold;">✓</span>`;
+            } else if (type === 'error') {
+                toast.classList.add("toast-error");
+                toastIcon.innerHTML = `<span style="color: var(--danger); font-weight: bold;">✗</span>`;
+            } else if (type === 'loading') {
+                toast.classList.add("toast-loading");
+                toastIcon.innerHTML = `<div class="toast-spinner"></div>`;
+            } else {
+                toastIcon.innerHTML = `<span style="color: var(--primary); font-weight: bold;">ℹ</span>`;
+            }
+
+            toastMsg.innerText = msg;
             toast.classList.add("show");
-            setTimeout(() => {
+
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+
+            if (duration > 0 && type !== 'loading') {
+                toastTimeout = setTimeout(() => {
+                    hideToast();
+                }, duration);
+            }
+        }
+
+        function hideToast() {
+            const toast = document.getElementById("toast");
+            if (toast) {
                 toast.classList.remove("show");
-            }, duration);
+            }
         }
 
         // Sliding Drawer logic
@@ -1426,7 +1547,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
         async function summarize() {
             const text = document.getElementById("dialogueInput").value.trim();
             if (!text) {
-                showToast("Please enter some text to summarize!");
+                showToast("Please enter some text to summarize!", "error");
                 return;
             }
 
@@ -1435,6 +1556,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             
             outputBox.innerHTML = `Summarizing dialogue using Custom-Trained Model...`;
             button.disabled = true;
+            showToast("Summarizing dialogue using AI...", "loading", 0);
 
             try {
                 const response = await fetch("/predict", {
@@ -1446,15 +1568,16 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                 const data = await response.json();
                 if (response.ok) {
                     outputBox.innerText = data.summary;
-                    showToast("Summarization complete!");
+                    showToast("Summarization complete!", "success");
                     // Refresh text summarization history
                     loadTextHistory();
                 } else {
                     outputBox.innerText = "Error: " + (data.error || "Failed to generate summary.");
-                    showToast("Error occurred.");
+                    showToast(data.error || "Failed to generate summary.", "error");
                 }
             } catch (e) {
                 outputBox.innerText = "Error connecting to the server.";
+                showToast("Server connection error.", "error");
             } finally {
                 button.disabled = false;
             }
@@ -1509,37 +1632,43 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             showToast("Loaded saved summary!");
         }
 
-        async function deleteTextHistoryItem(id) {
-            if (!confirm("Are you sure you want to delete this saved summary?")) return;
-            try {
-                const response = await fetch(`/text-history/${id}`, { method: "DELETE" });
-                if (response.ok) {
-                    showToast("Summary deleted.");
-                    loadTextHistory();
-                } else {
-                    showToast("Failed to delete summary.");
+        function deleteTextHistoryItem(id) {
+            showConfirmModal("Are you sure you want to delete this saved summary?", async (confirmed) => {
+                if (!confirmed) return;
+                showToast("Deleting summary...", "loading", 0);
+                try {
+                    const response = await fetch(`/text-history/${id}`, { method: "DELETE" });
+                    if (response.ok) {
+                        await loadTextHistory();
+                        showToast("Summary deleted.", "success");
+                    } else {
+                        showToast("Failed to delete summary.", "error");
+                    }
+                } catch (e) {
+                    showToast("Connection error.", "error");
                 }
-            } catch (e) {
-                showToast("Connection error.");
-            }
+            });
         }
 
-        async function clearAllTextHistory() {
-            if (!confirm("Are you sure you want to clear all saved summaries? This cannot be undone.")) return;
-            try {
-                const response = await fetch("/text-history", { method: "DELETE" });
-                if (response.ok) {
-                    showToast("Text history cleared.");
-                    loadTextHistory();
-                    document.getElementById("dialogueInput").value = "";
-                    document.getElementById("summaryOutput").innerText = "Summaries will appear here...";
-                    updateCharCount();
-                } else {
-                    showToast("Failed to clear history.");
+        function clearAllTextHistory() {
+            showConfirmModal("Are you sure you want to clear all saved summaries? This cannot be undone.", async (confirmed) => {
+                if (!confirmed) return;
+                showToast("Clearing history...", "loading", 0);
+                try {
+                    const response = await fetch("/text-history", { method: "DELETE" });
+                    if (response.ok) {
+                        await loadTextHistory();
+                        showToast("Text history cleared.", "success");
+                        document.getElementById("dialogueInput").value = "";
+                        document.getElementById("summaryOutput").innerText = "Summaries will appear here...";
+                        updateCharCount();
+                    } else {
+                        showToast("Failed to clear history.", "error");
+                    }
+                } catch (e) {
+                    showToast("Connection error.", "error");
                 }
-            } catch (e) {
-                showToast("Connection error.");
-            }
+            });
         }
 
         // Voice transcription Logic
@@ -1557,7 +1686,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             if (fileInput.files.length === 0) return;
             
             const file = fileInput.files[0];
-            showToast("Uploading and transcribing: " + file.name);
+            showToast("Uploading and transcribing: " + file.name, "loading", 0);
             
             const liveWords = document.getElementById("liveWordsText");
             liveWords.innerText = "Transcribing uploaded file: " + file.name + "...";
@@ -1581,19 +1710,19 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                         const speakerName = document.getElementById("speakerNameInput").value.trim() || "Speaker A";
                         addBubble(speakerName, data.text);
                         liveWords.innerText = "Transcribed file turn successfully!";
-                        showToast("Audio transcription added!");
+                        showToast("Audio transcription added!", "success");
                     } else {
                         liveWords.innerText = "No speech detected in file.";
-                        showToast("No speech found.");
+                        showToast("No speech found in file.", "error");
                     }
                 } else {
                     liveWords.innerText = "Error transcribing file: " + (data.error || "unknown error");
-                    showToast("Failed to transcribe audio.");
+                    showToast(data.error || "Failed to transcribe audio.", "error");
                 }
             } catch(e) {
                 console.error("File upload transcription failed", e);
                 liveWords.innerText = "Error uploading file to server.";
-                showToast("Server connection error.");
+                showToast("Server connection error.", "error");
             } finally {
                 fileInput.value = "";
             }
@@ -1659,7 +1788,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 
-                showToast("Finalizing transcription...");
+                showToast("Finalizing transcription...", "loading", 0);
                 document.getElementById("liveWordsText").innerText = "Transcribing final audio...";
                 
                 setTimeout(async () => {
@@ -1712,18 +1841,18 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                         const speakerName = document.getElementById("speakerNameInput").value.trim() || "Speaker A";
                         addBubble(speakerName, data.text);
                         document.getElementById("liveWordsText").innerText = "Turn added successfully.";
-                        showToast("Audio transcription added!");
+                        showToast("Audio transcription added!", "success");
                     } else {
                         document.getElementById("liveWordsText").innerText = "Speak to start transcribing...";
-                        showToast("No speech detected.");
+                        showToast("No speech detected.", "error");
                     }
                 } else {
-                    showToast("Transcription failed: " + (data.error || "unknown error"));
+                    showToast(data.error || "Transcription failed.", "error");
                     document.getElementById("liveWordsText").innerText = "Error: " + (data.error || "unknown error");
                 }
             } catch(e) {
                 console.error("Final transcription failed", e);
-                showToast("Error connecting to server.");
+                showToast("Error connecting to server.", "error");
             }
         }
 
@@ -1806,8 +1935,15 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                 container.appendChild(wrapper);
             });
             
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            // Scroll latest turn into view (smoothly scrolls element into viewport)
+            setTimeout(() => {
+                const bubbles = container.querySelectorAll('.chat-bubble-wrapper');
+                if (bubbles.length > 0) {
+                    bubbles[bubbles.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 50);
         }
 
         // Rest of the Javascript logic
@@ -1872,10 +2008,11 @@ Doctor: You're welcome, Mr. Miller. Take care.`
 
         async function saveCurrentSessionToServer() {
             if (currentSession.transcript.length === 0) {
-                showToast("Cannot save empty session.");
+                showToast("Cannot save empty session.", "error");
                 return;
             }
             
+            showToast("Saving session...", "loading", 0);
             try {
                 const response = await fetch("/sessions", {
                     method: "POST",
@@ -1886,13 +2023,13 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                 if (response.ok) {
                     currentSession.session_id = data.session_id;
                     currentSession.isSaved = true;
-                    showToast("Session saved successfully!");
+                    showToast("Session saved successfully!", "success");
                     loadSessionList();
                 } else {
-                    showToast("Failed to save session.");
+                    showToast("Failed to save session.", "error");
                 }
             } catch(e) {
-                showToast("Error connecting to server.");
+                showToast("Error connecting to server.", "error");
             }
         }
 
@@ -1940,6 +2077,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
         }
 
         async function loadSession(sessionId) {
+            showToast("Loading session...", "loading", 0);
             try {
                 const response = await fetch(`/sessions/${sessionId}`);
                 const data = await response.json();
@@ -1950,7 +2088,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                     document.getElementById("voiceSummaryBox").innerText = currentSession.summary || "Summary will appear here...";
                     renderTranscript();
                     loadSessionList();
-                    showToast("Session loaded.");
+                    showToast("Session loaded.", "success");
                     
                     if (data.has_audio) {
                         setAudioPlayback(`/sessions/${sessionId}/audio`);
@@ -1963,9 +2101,11 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                     const overlay = document.getElementById("drawerOverlay");
                     drawer.classList.remove("open");
                     overlay.classList.remove("show");
+                } else {
+                    showToast("Failed to load session.", "error");
                 }
             } catch(e) {
-                showToast("Failed to load session.");
+                showToast("Failed to load session.", "error");
             }
         }
 
@@ -1988,17 +2128,20 @@ Doctor: You're welcome, Mr. Miller. Take care.`
         function deleteSessionById(sessionId) {
             showConfirmModal("Are you sure you want to delete this meeting session?", async (confirmed) => {
                 if (!confirmed) return;
+                showToast("Deleting session...", "loading", 0);
                 try {
                     const response = await fetch(`/sessions/${sessionId}`, { method: "DELETE" });
                     if (response.ok) {
-                        showToast("Session deleted.");
                         if (currentSession.session_id === sessionId) {
                             startNewSession();
                         }
-                        loadSessionList();
+                        await loadSessionList();
+                        showToast("Session deleted.", "success");
+                    } else {
+                        showToast("Failed to delete session.", "error");
                     }
                 } catch(e) {
-                    showToast("Failed to delete session.");
+                    showToast("Failed to delete session.", "error");
                 }
             });
         }
@@ -2014,7 +2157,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
 
         async function summarizeVoiceTranscript() {
             if (currentSession.transcript.length === 0) {
-                showToast("Transcript is empty!");
+                showToast("Transcript is empty!", "error");
                 return;
             }
             
@@ -2027,6 +2170,7 @@ Doctor: You're welcome, Mr. Miller. Take care.`
             
             outputBox.innerText = `Summarizing dialogue using Custom-Trained Model...`;
             button.disabled = true;
+            showToast("Generating summary using AI...", "loading", 0);
             
             try {
                 const response = await fetch("/predict", {
@@ -2039,13 +2183,15 @@ Doctor: You're welcome, Mr. Miller. Take care.`
                 if (response.ok) {
                     outputBox.innerText = data.summary;
                     currentSession.summary = data.summary;
-                    showToast("Summary complete!");
+                    showToast("Summary complete!", "success");
                     await saveCurrentSessionToServer();
                 } else {
                     outputBox.innerText = "Error: " + (data.error || "Failed to generate summary.");
+                    showToast("Failed to generate summary.", "error");
                 }
             } catch(e) {
                 outputBox.innerText = "Error connecting to Custom-Trained Model engine.";
+                showToast("Server connection error.", "error");
             } finally {
                 button.disabled = false;
             }
