@@ -12,11 +12,15 @@ def get_db_connection():
     if db_url:
         return psycopg2.connect(db_url, cursor_factory=RealDictCursor, connect_timeout=5)
     
-    db_user = os.environ.get("DB_USER", "postgres.wbxaqhoqdewajnctumrb")
-    db_pass = os.environ.get("DB_PASSWORD", "S1u2p3a4b5!@")
-    db_host = os.environ.get("DB_HOST", "aws-0-ap-southeast-1.pooler.supabase.com")
+    db_user = os.environ.get("DB_USER")
+    db_pass = os.environ.get("DB_PASSWORD")
+    db_host = os.environ.get("DB_HOST")
     db_port = os.environ.get("DB_PORT", "6543")
     db_name = os.environ.get("DB_NAME", "postgres")
+    
+    if not all([db_user, db_pass, db_host]):
+        logger.error("Missing database connection environment variables (DB_USER, DB_PASSWORD, or DB_HOST).")
+        raise ValueError("Database credentials are not configured in environment variables.")
     
     conn = psycopg2.connect(
         host=db_host,
