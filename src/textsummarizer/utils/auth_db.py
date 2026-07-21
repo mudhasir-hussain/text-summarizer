@@ -82,6 +82,12 @@ def init_db():
             )
         """)
         
+        # Enable Row-Level Security (RLS) on all tables to prevent public access via PostgREST/Supabase REST API
+        cursor.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY")
+        cursor.execute("ALTER TABLE sessions ENABLE ROW LEVEL SECURITY")
+        cursor.execute("ALTER TABLE meeting_sessions ENABLE ROW LEVEL SECURITY")
+        cursor.execute("ALTER TABLE text_summaries ENABLE ROW LEVEL SECURITY")
+        
         conn.commit()
         logger.info("Supabase PostgreSQL database initialized successfully.")
         
